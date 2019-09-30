@@ -16,8 +16,11 @@ import com.wego.viewmodel.IMainActivity;
 
 public class MainActivity extends AppCompatActivity implements IMainActivity {
 
-    private final int PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION = 11;
+    private final int PERMISSIONS_REQUEST_LOCATION = 11;
     private WegoRepository repository;
+    private CategoryEntity selectedCategoryEntity;
+    private int categoryListPosition = 0;
+    private boolean openCategoriesList = false, openGoogleMaps = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +51,16 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
     @Override
     public void openCategoryResults(CategoryEntity categoryEntity) {
 
+        if (!getLocationPermission()) {
+            selectedCategoryEntity = categoryEntity;
+            openCategoriesList = true;
+            openGoogleMaps = false;
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
+                    PERMISSIONS_REQUEST_LOCATION);
+            return;
+        }
+
         setToolbarTitle(categoryEntity.mCategoryName);
         categoryEntity.mSelectionFrequency = categoryEntity.mSelectionFrequency + 1;
         repository.update(categoryEntity);
@@ -64,17 +77,18 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
                 .commit();
     }
 
-
-
     /**
      * Method to open list of google maps fragment.
      * */
     @Override
     public void openGoogleMap(int position) {
         if (!getLocationPermission()) {
+            categoryListPosition = position;
+            openCategoriesList = false;
+            openGoogleMaps = true;
             ActivityCompat.requestPermissions(this,
                     new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION},
-                    PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION);
+                    PERMISSIONS_REQUEST_LOCATION);
             return;
         }
         Bundle bundle = new Bundle();
@@ -105,10 +119,15 @@ public class MainActivity extends AppCompatActivity implements IMainActivity {
                                            @NonNull String permissions[],
                                            @NonNull int[] grantResults) {
         switch (requestCode) {
-            case PERMISSIONS_REQUEST_ACCESS_FINE_LOCATION: {
+            case PERMISSIONS_REQUEST_LOCATION: {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    openGoogleMap(1);
+                    if(openCategoriesList){
+                        openCategoryResults(selectedCategoryEntity);
+                    }
+                    else if(openGoogleMaps){
+                        openGoogleMap(categoryListPosition);
+                    }
                 }
             }
         }

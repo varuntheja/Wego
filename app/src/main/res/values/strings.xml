@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Wego</string>
+    <string name="airports">Airports</string>
+    <string name="travel_agencies">Travel agencies</string>
+    <string name="please_wait">Please wait...</string>
+    <string name="network_error_msg">Please check your network connection.</string>
+    <string name="select_category">Select Category</string>
+</resources>
